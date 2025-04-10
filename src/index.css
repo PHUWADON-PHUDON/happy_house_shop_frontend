@@ -1,0 +1,37 @@
+@import "tailwindcss";
+
+::-webkit-scrollbar{
+    display: none;
+}
+
+.hovermenu:hover i , .hovermenu:hover p{
+    color: #f1662a;
+}
+
+.tablestyle{
+    height: calc(100dvh - 60px);
+}
+
+.alert{
+    transition: all .2s ease;
+}
+
+.alertaction{
+    transform: translateY(200px);
+}
+
+.alertloadbar{
+    animation: alertloadbar 5s linear forwards;
+}
+
+@keyframes alertloadbar {
+    0%{
+        width: 100%;
+    }
+    50%{
+        width: 50%;
+    }
+    100%{
+        width: 0%;
+    }
+}
