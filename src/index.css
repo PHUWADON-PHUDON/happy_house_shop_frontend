@@ -4,13 +4,19 @@
     display: none;
 }
 
+/*!style hover menu*/
+
 .hovermenu:hover i , .hovermenu:hover p{
     color: #f1662a;
 }
 
+/*!style table at manageproduct page*/
+
 .tablestyle{
     height: calc(100dvh - 60px);
 }
+
+/*!style alert component*/
 
 .alert{
     transition: all .2s ease;
@@ -34,4 +40,10 @@
     100%{
         width: 0%;
     }
+}
+
+/*!style edit category*/
+
+.showeditbox{
+    height: 50px;
 }
