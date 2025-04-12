@@ -1,6 +1,7 @@
 import { useState,useEffect,useCallback,useRef } from "react";
-import { useNavigate,Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import Alert from "../components/Alert";
 
 interface CategoryType {
     id:number;
@@ -11,9 +12,55 @@ export default function Managecategory() {
     const [inputcategory,setinputcategory] = useState<string>("");
     const [allcategory,setallcategory] = useState<CategoryType[]>([]);
     const [isclickedit,setisclickedit] = useState<boolean>(false);
+    const [isclickdel,setisclickdel] = useState<boolean>(false);
+    const [inputeditcategory,setinputeditcategory] = useState<string>("");
+    const [isalert,setisalert] = useState<boolean>(false);
+    const [isconfirmalert,setisconfirmalert] = useState<string>("cancel"); //status cancel,on,ok
+    const textalertref = useRef<string>("");
+    const labelalertref = useRef<string>("");
+    const typealertref = useRef<string>("");
     const createcategoryabortref = useRef<AbortController | null>(null);
+    const getiditemref = useRef<number>(0);
     const getindexitemsref = useRef<number>(0);
     const navigate = useNavigate();
+
+    //!function
+
+    //alert controller
+    const alert = (text:string,label:string,type:string) => {
+        if (isalert) {
+            setisalert(false);
+            const time = setTimeout(() => {
+                textalertref.current = text;
+                labelalertref.current = label;
+                typealertref.current = type;
+
+                if (type === "confirm") {
+                    setisconfirmalert("on");
+                }
+
+                setisalert(true)
+                return () => clearTimeout(time);
+            },200);
+        }
+        else {
+            textalertref.current = text;
+            labelalertref.current = label;
+            typealertref.current = type;
+
+            if (type === "confirm") {
+                setisconfirmalert("on");
+            }
+
+            setisalert(false);
+            const time = setTimeout(() => {
+                setisalert(true)
+                return () => clearTimeout(time);
+            },200);
+        }
+    }
+
+    //!
 
     //!load data
 
@@ -50,12 +97,18 @@ export default function Managecategory() {
         try{
             if (inputcategory !== "") {
                 const res = await axios.post(import.meta.env.VITE_URLBACKEND + "/category",{name:inputcategory},{signal:createcategoryabortref.current.signal});
+
+                alert("เพิ่มประเภทสินค้าสำเร็จ","s","");
             
                 setallcategory((prev) => [...prev,res.data]);
                 setinputcategory("");
             }
+            else {
+                alert("ต้องใส่ข้อมูลในช่องใส่ข้อมูลก่อน","w","");
+            }
         }
         catch(err) {
+            alert("เพิ่มประเภทสินค้าไม่สำเร็จ","f","");
             console.log(err);
         }
     };
@@ -64,15 +117,92 @@ export default function Managecategory() {
 
     //!click edit
 
-    const clickEdit = (index:number) => {
+    const clickEdit = (index:number,value:string) => {
         getindexitemsref.current = index; 
 
         setisclickedit(!isclickedit);
+        setinputeditcategory(value);
+        setisalert(false);
+        setisclickdel(false);
+    }
+
+    const sendEditCategory = async (id:number,index:number) => {
+        try{
+            const res = await axios.patch(import.meta.env.VITE_URLBACKEND + "/category/" + id,{name:inputeditcategory});
+            const arrallcategory = allcategory;
+            arrallcategory[index].name = res.data.name;
+
+            alert("แก้ไขประเภทสินค้าสำเร็จ","s","");
+
+            setallcategory((prev) => [...arrallcategory]);
+            setisclickedit(false);
+        }
+        catch(err) {
+            alert("แก้ไขประเภทสินค้าไม่สำเร็จ","f","");
+            console.log(err);
+        }
     }
 
     //!
 
+    //!click delete
+
+    const clickDel = (id:number,index:number) => {
+        getiditemref.current = id;
+        getindexitemsref.current = index;
+
+        setisclickdel(!isclickdel);
+        setisclickedit(false);
+    }
+
+    useEffect(() => {
+        if (isclickdel) {
+            alert("ต้องการประเภทสินค้านี้ ใช่ หรือ ไม่","","confirm");
+        }
+        else {
+            setisalert(false)
+        }
+    },[isclickdel]);
+
+    useEffect(() => {
+        const abortcontroller = new AbortController();
+
+        const delcategory = async () => {
+            if (isconfirmalert === "ok") {
+                try{
+                    const res = await axios.delete(import.meta.env.VITE_URLBACKEND + "/category/" + getiditemref.current);
+                    const newarrallcategory = allcategory.filter((_,i:number) => i !== getindexitemsref.current);
+
+                    setallcategory((prev) => [...newarrallcategory]);
+                    setisconfirmalert("cancel");
+                    setisclickdel(false);
+                    alert("ลบประเภทสินค้าสำเร็จ","s","");
+                }
+                catch(err) {
+                    setisconfirmalert("cancel");
+                    setisclickdel(false);
+                    alert("ลบประเภทสินค้าไม่สำเร็จ","f","");
+                    console.log(err);
+                }
+            }
+            else if (isconfirmalert === "on") {
+                setisclickdel(true);
+            }
+            else {
+                setisclickdel(false);
+            }
+        }
+
+        delcategory();
+
+        return () => abortcontroller.abort();
+    },[isconfirmalert]);
+
+    //!
+
     return(
+        <>
+        <Alert isalert={isalert} setisalert={setisalert} textalert={textalertref.current} labelalert={labelalertref.current} typealert={typealertref.current} setisconfirmalert={setisconfirmalert}/>
         <div className="w-full h-full bg-[#fff] rounded-[4px] p-[10px]">
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-[20px]">
@@ -94,15 +224,15 @@ export default function Managecategory() {
                                     <p>{i + 1}</p>
                                     <p>{e.name}</p>
                                     <div className="flex gap-[20px] justify-center items-center">
-                                        <div onClick={() => clickEdit(i)} className="text-[#fece02] cursor-pointer">
-                                            <i className={`${isclickedit && getindexitemsref.current === i ? "text-[#408ddc]":""} fa-solid fa-pencil`}></i>
+                                        <div onClick={() => clickEdit(i,e.name)} className="cursor-pointer">
+                                            <i className={`${isclickedit && getindexitemsref.current === i ? "text-[#408ddc]":"text-[#fece02]"} fa-solid fa-pencil`}></i>
                                         </div>
-                                        <i className="fa-solid fa-trash text-[red] cursor-pointer"></i>
+                                        <i onClick={() => clickDel(e.id,i)} className={`${isclickdel && getindexitemsref.current === i ? "text-[#408ddc]":"text-[red]"} fa-solid fa-trash cursor-pointer`}></i>
                                     </div>
                                 </div>
                                 <div className={`${isclickedit && getindexitemsref.current === i ? "showeditbox":""} bg-white flex justify-center items-center gap-[10px] overflow-hidden h-[0] duration-[0.2s]`}>
-                                    <input type="text" className="border-[1px] block m-[10px_0] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ใส่ประเภทสินค้า"/>
-                                    <div className="bg-[#31b84b] m-[10px_0] w-[50px] h-[30px] rounded-[4px] text-white flex justify-center items-center gap-[10px] cursor-pointer">ตกลง</div>
+                                    <input onChange={(e) => setinputeditcategory(e.target.value)} value={inputeditcategory} type="text" className="border-[1px] block m-[10px_0] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ใส่ประเภทสินค้า"/>
+                                    <div onClick={() => sendEditCategory(e.id,i)} className="bg-[#31b84b] m-[10px_0] w-[50px] h-[30px] rounded-[4px] text-white flex justify-center items-center gap-[10px] cursor-pointer">ตกลง</div>
                                 </div>
                             </div>
                         ))}
@@ -115,5 +245,6 @@ export default function Managecategory() {
                 </div>
             </div>
         </div>
+        </>
     );
 }

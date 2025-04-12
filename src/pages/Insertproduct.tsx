@@ -10,7 +10,9 @@ export default function Insertproduct() {
     const [inputfile,setinputfile] = useState<File>();
     const [previewfile,setpreviewfile] = useState<string>("");
     const [isalert,setisalert] = useState<boolean>(false);
+    const [isconfirmalert,setisconfirmalert] = useState<string>("cancel"); //status cancel,on,ok
     const barcoderef = useRef<string>("");
+    const textalertref = useRef<string>("");
     const [textalert,settextalert] = useState<string>("");
     const navigate = useNavigate();
 
@@ -32,7 +34,7 @@ export default function Insertproduct() {
                         return () => clearTimeout(time);
                     },200);
 
-                    settextalert((prev) => prev = "โอ้ะ ถ้าใช้เครื่องสะแกน แล้วรหัสสินค้าไม่ขึ้น ลองเปลียนเป็นภาษา อังกฤษ ดู");
+                    textalertref.current = "โอ้ะ ถ้าใช้เครื่องสะแกน แล้วรหัสสินค้าไม่ขึ้น ลองเปลียนเป็นภาษา อังกฤษ ดู";
                 }
         
                 barcoderef.current = "";
@@ -69,7 +71,7 @@ export default function Insertproduct() {
         if (barcode === "" || inputproductname === "" ||
             inputprice === 0 || inputstock === 0
         ) {
-            settextalert((prev) => prev = "ต้องใส่ข้อมูลในช่องใส่ข้อความที่มีเครื่องหมาย * ให้ครบ");
+            textalertref.current = "ต้องใส่ข้อมูลในช่องใส่ข้อความที่มีเครื่องหมาย * ให้ครบ";
             setisalert(false);
             const time = setTimeout(() => {
                 setisalert(true);
@@ -97,7 +99,7 @@ export default function Insertproduct() {
 
     return(
         <>
-        <Alert isalert={isalert} setisalert={setisalert} textalert={textalert}/>
+        <Alert isalert={isalert} setisalert={setisalert} textalert={textalertref.current} labelalert={"w"} typealert={""} setisconfirmalert={setisconfirmalert}/>
         <div className="w-full h-full bg-[#fff] rounded-[4px] p-[10px]">
             <div className="h-[30px] flex justify-between items-center">
                 <div className="flex items-center gap-[20px]">
