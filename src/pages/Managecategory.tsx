@@ -1,5 +1,5 @@
 import { useState,useEffect,useCallback,useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useSearchParams } from "react-router-dom";
 import axios from "axios";
 import Alert from "../components/Alert";
 
@@ -10,6 +10,7 @@ interface CategoryType {
 
 export default function Managecategory() {
     const [inputcategory,setinputcategory] = useState<string>("");
+    const [inputsearch,setinputsearch] = useState<string>("");
     const [allcategory,setallcategory] = useState<CategoryType[]>([]);
     const [isclickedit,setisclickedit] = useState<boolean>(false);
     const [isclickdel,setisclickdel] = useState<boolean>(false);
@@ -23,6 +24,7 @@ export default function Managecategory() {
     const getiditemref = useRef<number>(0);
     const getindexitemsref = useRef<number>(0);
     const navigate = useNavigate();
+    const [searchparam] = useSearchParams();
 
     //!function
 
@@ -69,6 +71,7 @@ export default function Managecategory() {
 
         const loaddata = async () => {
             try{
+                console.log(searchparam.get("search"));
                 const res = await axios.get(import.meta.env.VITE_URLBACKEND + "/category",{signal:abortcontroller.signal});
                 
                 setallcategory(res.data);
@@ -128,14 +131,16 @@ export default function Managecategory() {
 
     const sendEditCategory = async (id:number,index:number) => {
         try{
-            const res = await axios.patch(import.meta.env.VITE_URLBACKEND + "/category/" + id,{name:inputeditcategory});
-            const arrallcategory = allcategory;
-            arrallcategory[index].name = res.data.name;
+            if (inputeditcategory !== "") {
+                const res = await axios.patch(import.meta.env.VITE_URLBACKEND + "/category/" + id,{name:inputeditcategory});
+                const arrallcategory = allcategory;
+                arrallcategory[index].name = res.data.name;
 
-            alert("แก้ไขประเภทสินค้าสำเร็จ","s","");
+                alert("แก้ไขประเภทสินค้าสำเร็จ","s","");
 
-            setallcategory((prev) => [...arrallcategory]);
-            setisclickedit(false);
+                setallcategory((prev) => [...arrallcategory]);
+                setisclickedit(false);
+            }
         }
         catch(err) {
             alert("แก้ไขประเภทสินค้าไม่สำเร็จ","f","");
@@ -200,6 +205,39 @@ export default function Managecategory() {
 
     //!
 
+    //!search category
+
+    const getstrsearch = (value:string) => {
+        if (value !== "") {
+            navigate("/manageproduct/managecategory?search=" + value);
+        }
+        else {
+            navigate("/manageproduct/managecategory");
+        }
+        setinputsearch(value);
+    }
+
+    useEffect(() => {
+        const abortcontroller = new AbortController();
+
+        const search = async () => {
+            try{
+                const res = await axios.get(import.meta.env.VITE_URLBACKEND + "/category/search?search=" + inputsearch,{signal:abortcontroller.signal});
+
+                setallcategory((prev) => [...res.data]);
+            }
+            catch(err) {
+                console.log(err);
+            }
+        }
+
+        search();
+
+        return () => abortcontroller.abort();
+    },[inputsearch]);
+
+    //!
+
     return(
         <>
         <Alert isalert={isalert} setisalert={setisalert} textalert={textalertref.current} labelalert={labelalertref.current} typealert={typealertref.current} setisconfirmalert={setisconfirmalert}/>
@@ -207,7 +245,7 @@ export default function Managecategory() {
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-[20px]">
                     <i onClick={() => navigate(-1)} className="fa-regular fa-circle-left text-[25px] text-[#aeaeae] cursor-pointer hover:text-[#f1662a]"></i>
-                    <input type="text" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ค้นหาประเภทสินค้า" />
+                    <input onChange={(e) => getstrsearch(e.target.value)} type="text" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ค้นหาประเภทสินค้า" />
                 </div>
             </div>
             <div className="tablestyle w-full flex gap-[10px]">
