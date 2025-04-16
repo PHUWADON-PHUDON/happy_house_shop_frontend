@@ -1,6 +1,48 @@
+import { useState,useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import noimage from "../assets/noimage.jpg";
+
+interface CategoryType {
+    id:number;
+    name:string;
+}
+
+interface ProductType {
+    id:number;
+    name:string;
+    barcode:string;
+    price:number
+    stock:number;
+    description:string
+    image:string;
+    category:CategoryType;
+}
 
 export default function Menageproduct() {
+    const [allproduct,setallproduct] = useState<ProductType[]>([]);
+    const url = import.meta.env.VITE_URLBACKEND;
+
+    //!load data
+    
+    useEffect(() => {
+        const abortcontroller = new AbortController();
+
+        const loaddata = async () => {
+            const res = await axios.get(url + "/product");
+
+            if (res.status === 200) {
+                setallproduct(res.data);
+            }
+        }
+    
+        loaddata();
+
+        return () => abortcontroller.abort();
+    },[]);
+
+    //!
+
     return(
         <div className="w-full h-full bg-[#fff] rounded-[4px] p-[10px]">
             <div className="flex justify-between items-center">
@@ -25,20 +67,26 @@ export default function Menageproduct() {
                     <p>การจัดการ</p>
                 </div>
                 <div className="grow-[1] overflow-y-scroll">
-                    <div className="grid grid-cols-7 text-center items-center justify-items-center mt-[10px] text-[#585858]">
-                        <img className="w-[80px] h-[80px] block" src="https://plus.unsplash.com/premium_photo-1731948133366-0d1dbb7db851?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHw2fHx8ZW58MHx8fHx8" alt="" />
-                        <p>lay</p>
-                        <p>123456789</p>
-                        <p>20</p>
-                        <p>50</p>
-                        <p>ขนม</p>
-                        <div className="flex gap-[20px] justify-center items-center">
-                            <Link to={""} className="text-[#fece02]">
-                                <i className="fa-solid fa-pencil"></i>
-                            </Link>
-                            <i className="fa-solid fa-trash text-[red] cursor-pointer"></i>
+                    {allproduct.map((e,i:number) => (
+                        <div key={i} className="grid grid-cols-7 text-center items-center justify-items-center mt-[10px] text-[#585858]">
+                            {e.image ? 
+                                <img className="w-[80px] h-[80px] block" src={url + "/uploads/" + e.image} alt="" />
+                                :
+                                <img className="w-[80px] h-[80px] block" src={noimage} alt="" />
+                            }
+                            <p>{e.name}</p>
+                            <p>{e.barcode}</p>
+                            <p>{e.price}</p>
+                            <p>{e.stock}</p>
+                            <p>{e.category.name}</p>
+                            <div className="flex gap-[20px] justify-center items-center">
+                                <Link to={""} className="text-[#fece02]">
+                                    <i className="fa-solid fa-pencil"></i>
+                                </Link>
+                                <i className="fa-solid fa-trash text-[red] cursor-pointer"></i>
+                            </div>
                         </div>
-                    </div>
+                    ))}
                 </div>
             </div>
         </div>

@@ -25,6 +25,7 @@ export default function Managecategory() {
     const getindexitemsref = useRef<number>(0);
     const navigate = useNavigate();
     const [searchparam] = useSearchParams();
+    const url = import.meta.env.VITE_URLBACKEND;
 
     //!function
 
@@ -71,10 +72,11 @@ export default function Managecategory() {
 
         const loaddata = async () => {
             try{
-                console.log(searchparam.get("search"));
-                const res = await axios.get(import.meta.env.VITE_URLBACKEND + "/category",{signal:abortcontroller.signal});
+                const res = await axios.get(url + "/category",{signal:abortcontroller.signal});
                 
-                setallcategory(res.data);
+                if (res.status === 200) {
+                    setallcategory(res.data);
+                }
             }
             catch(err) {
                 console.log(err);
@@ -99,12 +101,13 @@ export default function Managecategory() {
 
         try{
             if (inputcategory !== "") {
-                const res = await axios.post(import.meta.env.VITE_URLBACKEND + "/category",{name:inputcategory},{signal:createcategoryabortref.current.signal});
+                const res = await axios.post(url + "/category",{name:inputcategory},{signal:createcategoryabortref.current.signal});
 
-                alert("เพิ่มประเภทสินค้าสำเร็จ","s","");
-            
-                setallcategory((prev) => [...prev,res.data]);
-                setinputcategory("");
+                if (res.status === 201) {
+                    alert("เพิ่มประเภทสินค้าสำเร็จ","s","");
+                    setallcategory((prev) => [...prev,res.data]);
+                    setinputcategory("");
+                }
             }
             else {
                 alert("ต้องใส่ข้อมูลในช่องใส่ข้อมูลก่อน","w","");
@@ -132,14 +135,16 @@ export default function Managecategory() {
     const sendEditCategory = async (id:number,index:number) => {
         try{
             if (inputeditcategory !== "") {
-                const res = await axios.patch(import.meta.env.VITE_URLBACKEND + "/category/" + id,{name:inputeditcategory});
-                const arrallcategory = allcategory;
-                arrallcategory[index].name = res.data.name;
+                const res = await axios.patch(url + "/category/" + id,{name:inputeditcategory});
 
-                alert("แก้ไขประเภทสินค้าสำเร็จ","s","");
+                if (res.status === 200) {
+                    const arrallcategory = allcategory;
+                    arrallcategory[index].name = res.data.name;
 
-                setallcategory((prev) => [...arrallcategory]);
-                setisclickedit(false);
+                    alert("แก้ไขประเภทสินค้าสำเร็จ","s","");
+                    setallcategory((prev) => [...arrallcategory]);
+                    setisclickedit(false);
+                }
             }
         }
         catch(err) {
@@ -175,13 +180,16 @@ export default function Managecategory() {
         const delcategory = async () => {
             if (isconfirmalert === "ok") {
                 try{
-                    const res = await axios.delete(import.meta.env.VITE_URLBACKEND + "/category/" + getiditemref.current);
-                    const newarrallcategory = allcategory.filter((_,i:number) => i !== getindexitemsref.current);
+                    const res = await axios.delete(url + "/category/" + getiditemref.current);
+                    
+                    if (res.status === 200) {
+                        const newarrallcategory = allcategory.filter((_,i:number) => i !== getindexitemsref.current);
 
-                    setallcategory((prev) => [...newarrallcategory]);
-                    setisconfirmalert("cancel");
-                    setisclickdel(false);
-                    alert("ลบประเภทสินค้าสำเร็จ","s","");
+                        setallcategory((prev) => [...newarrallcategory]);
+                        setisconfirmalert("cancel");
+                        setisclickdel(false);
+                        alert("ลบประเภทสินค้าสำเร็จ","s","");
+                    }
                 }
                 catch(err) {
                     setisconfirmalert("cancel");
@@ -222,9 +230,11 @@ export default function Managecategory() {
 
         const search = async () => {
             try{
-                const res = await axios.get(import.meta.env.VITE_URLBACKEND + "/category/search?search=" + inputsearch,{signal:abortcontroller.signal});
+                const res = await axios.get(url + "/category/search?search=" + inputsearch,{signal:abortcontroller.signal});
 
-                setallcategory((prev) => [...res.data]);
+                if (res.status === 200) {
+                    setallcategory((prev) => [...res.data]);
+                }
             }
             catch(err) {
                 console.log(err);
@@ -244,7 +254,7 @@ export default function Managecategory() {
         <div className="w-full h-full bg-[#fff] rounded-[4px] p-[10px]">
             <div className="flex justify-between items-center">
                 <div className="flex items-center gap-[20px]">
-                    <i onClick={() => navigate(-1)} className="fa-regular fa-circle-left text-[25px] text-[#aeaeae] cursor-pointer hover:text-[#f1662a]"></i>
+                    <i onClick={() => navigate("/manageproduct")} className="fa-regular fa-circle-left text-[25px] text-[#aeaeae] cursor-pointer hover:text-[#f1662a]"></i>
                     <input onChange={(e) => getstrsearch(e.target.value)} type="text" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ค้นหาประเภทสินค้า" />
                 </div>
             </div>
