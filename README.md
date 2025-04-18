@@ -1,5 +1,6 @@
 before start this project
 - add .env file
+sample VITE_URLBACKEND = http://localhost:3000
 
 # React + TypeScript + Vite
 
