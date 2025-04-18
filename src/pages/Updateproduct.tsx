@@ -1,5 +1,5 @@
 import { useState,useEffect,useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate,useParams } from "react-router-dom";
 import Alert from "../components/Alert";
 import axios from "axios";
 
@@ -8,7 +8,7 @@ interface CategoryType {
     name:string;
 }
 
-export default function Insertproduct() {
+export default function Updateproduct() {
     const [allcategory,setallcategory] = useState<CategoryType[]>([]);
     const [barcode,setbarcode] = useState<string>("");
     const [inputproductname,setinputproductname] = useState<string>("");
@@ -27,6 +27,7 @@ export default function Insertproduct() {
     const inputfileref = useRef<any>(null);
     const abortcontrollerref = useRef<AbortController | null>(null);
     const navigate = useNavigate();
+    const param = useParams();
     const url = import.meta.env.VITE_URLBACKEND;
 
     //!function
@@ -71,21 +72,51 @@ export default function Insertproduct() {
 
     useEffect(() => {
         const abortcontroller = new AbortController();
+        const abortcontroller2 = new AbortController();
 
-        const loaddata = async () => {
+        const loadcategorydata = async () => {
             try{
                 const res = await axios.get(url + "/category",{signal:abortcontroller.signal});
 
-                setallcategory(res.data);
+                if (res.status === 200) {
+                    setallcategory(res.data);
+                }
             }
             catch(err) {
                 console.log(err);
             }
         }
 
-        loaddata();
+        const loadproductdata = async () => {
+            try{
+                const res = await axios.get(url + "/product/" + param.id,{signal:abortcontroller2.signal});
 
-        return () => abortcontroller.abort();
+                if (res.status === 200) {
+                    setbarcode(res.data.barcode);
+                    setinputproductname(res.data.name);
+                    setinputprice(res.data.price);
+                    setinputstock(res.data.stock);
+                    setinputcategoryid(res.data.categoryid);
+                    setinputdescription(res.data.description);
+
+                    if (res.data.image) {
+                        setpreviewfile(res.data.image);
+                    }
+                }
+            }
+            catch(err) {
+                console.log(err);
+            }
+        }
+
+
+        loadcategorydata();
+        loadproductdata();
+
+        return () => {
+            abortcontroller.abort();
+            abortcontroller2.abort();
+        };
     },[]);
 
     //!
@@ -126,7 +157,7 @@ export default function Insertproduct() {
         if (file_) {
             if (filetype.includes(file_.type)) {
                 const createurl = URL.createObjectURL(file_);
-
+                
                 setinputfile(file_);
                 setpreviewfile(createurl);
             }
@@ -155,7 +186,7 @@ export default function Insertproduct() {
         }
     }
 
-    const insertData = async () => {
+    const updateData = async () => {
         if (abortcontrollerref.current) {
             abortcontrollerref.current.abort();
         }
@@ -174,14 +205,20 @@ export default function Insertproduct() {
                     formdata.append("file",inputfile);
                 }
                 formdata.append("description",inputdescription);
-                const res = await axios.post(url + "/product",formdata,{signal:abortcontrollerref.current.signal,headers:{'Content-Type': 'multipart/form-data'}});
+                const res = await axios.patch(url + `/product/${param.id}`,formdata,{signal:abortcontrollerref.current.signal,headers:{'Content-Type': 'multipart/form-data'}});
                 
-                if (res.status === 201) {
-                    alert("เพิ่มสินค้าสำเร็จ","s","");
+                if (res.status === 200) {
+                    alert("แก้ไขข้อมูลสำเร็จ","s","");
                 }
             }
-            catch(err) {
-                alert("รหัสสินค้านี้เคยถูกเพิ่มในฐานข้อมูลแล้ว","f","");
+            catch(err:any) {
+                if (err.response.data.message == "P2002") {
+                    alert("รหัสสินค้านี้เคยถูกเพิ่มในฐานข้อมูลแล้ว","w","");
+                }
+                else {
+                    alert("แก้ไขข้อมูลไม่สำเร็จ","f","");
+                }
+
                 console.log(err);
             }
         }
@@ -199,7 +236,7 @@ export default function Insertproduct() {
     }
 
     //!
-
+    
     return(
         <>
         <Alert isalert={isalert} setisalert={setisalert} textalert={textalertref.current} labelalert={labelalertref.current} typealert={typealertref.current} setisconfirmalert={setisconfirmalert}/>
@@ -217,19 +254,19 @@ export default function Insertproduct() {
                     </div>
                     <div>
                         <p className="ml-[10px]">ชื่อสินค้า <span className="text-[red]">*</span></p>
-                        <input onChange={(e) => setinputproductname(e.target.value)} type="text" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ใส่ชื่อสินค้า" />
+                        <input onChange={(e) => setinputproductname(e.target.value)} value={inputproductname} type="text" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ใส่ชื่อสินค้า" />
                     </div>
                     <div>
                         <p className="ml-[10px]">ราคา <span className="text-[red]">*</span></p>
-                        <input onChange={(e) => setinputprice(Number(e.target.value))} type="number" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ใส่ราคา" />
+                        <input onChange={(e) => setinputprice(Number(e.target.value))} value={inputprice} type="number" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ใส่ราคา" />
                     </div>
                     <div>
                         <p className="ml-[10px]">จำนวนคงเหลือ <span className="text-[red]">*</span></p>
-                        <input onChange={(e) => setinputstock(Number(e.target.value))} type="number" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ใส่จำนวนคงเหลือ" />
+                        <input onChange={(e) => setinputstock(Number(e.target.value))} value={inputstock} type="number" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="ใส่จำนวนคงเหลือ" />
                     </div>
                     <div>
                         <p className="ml-[10px]">หมวดหมู่สินค้า <span className="text-[red]">*</span></p>
-                        <select onChange={(e) => setinputcategoryid(Number(e.target.value))} name="" id="" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none">
+                        <select onChange={(e) => setinputcategoryid(Number(e.target.value))} value={inputcategoryid} name="" id="" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none">
                             <option value={0}>-</option>
                             {allcategory.map((e,i:number) => (
                                 <option key={i} value={e.id}>{e.name}</option>
@@ -249,14 +286,18 @@ export default function Insertproduct() {
                     </div>
                     <div>
                         <p className="ml-[10px]">รายละเอียดเพิ่มเติม</p>
-                        <input onChange={(e) => setinputdescription(e.target.value)} type="text" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="รายละเอียดเพิ่มเติม" />
+                        <input onChange={(e) => setinputdescription(e.target.value)} value={inputdescription} type="text" className="border-[1px] border-[#aeaeae] rounded-[20px] p-[2px_10px] w-[300px] h-[30px] focus:outline-none" placeholder="รายละเอียดเพิ่มเติม" />
                     </div>
-                    <div onClick={() => insertData()} className="bg-[#f1662a] w-[120px] h-[30px] rounded-[4px] text-white flex justify-center items-center gap-[10px] mt-[20px] cursor-pointer">เพิ่มลงฐานข้อมูล</div>
+                    <div onClick={() => updateData()} className="bg-[#f1662a] w-[120px] h-[30px] rounded-[4px] text-white flex justify-center items-center gap-[10px] mt-[20px] cursor-pointer">แก้ไขข้อมูล</div>
                 </div>
                 <div className="w-[50%] flex justify-center">
                     <div className="border-dashed border-[4px] border-[#f1662a] bg-[#fdb0766a] w-[420px] h-[420px] relative">
                         <p className="text-[25px] text-[#f1662a] absolute top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-[0]">ตัวอย่างรูป</p>
-                        <img src={previewfile} alt="" className="w-full h-full relative z-[5]"/>
+                        {previewfile.includes("http") ?
+                            <img src={previewfile} alt="" className="w-full h-full relative z-[5]"/>
+                            :
+                            <img src={`${url}/uploads/${previewfile}`} alt="" className="w-full h-full relative z-[5]"/>
+                        }
                     </div>
                 </div>
             </div>

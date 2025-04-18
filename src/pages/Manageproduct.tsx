@@ -80,7 +80,7 @@ export default function Menageproduct() {
                             <p>{e.stock}</p>
                             <p>{e.category.name}</p>
                             <div className="flex gap-[20px] justify-center items-center">
-                                <Link to={""} className="text-[#fece02]">
+                                <Link to={`/manageproduct/updateproduct/${e.id}`} className="text-[#fece02]">
                                     <i className="fa-solid fa-pencil"></i>
                                 </Link>
                                 <i className="fa-solid fa-trash text-[red] cursor-pointer"></i>

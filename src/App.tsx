@@ -3,6 +3,7 @@ import Home from './pages/Home';
 import Manageproduct from './pages/Manageproduct';
 import Managecategory from './pages/Managecategory';
 import Insertproduct from './pages/Insertproduct';
+import Updateproduct from './pages/Updateproduct';
 
 function App() {
   return(
@@ -28,6 +29,7 @@ function App() {
             <Route path="/manageproduct" element={<Manageproduct/>} />
             <Route path="/manageproduct/managecategory" element={<Managecategory/>} />
             <Route path="/manageproduct/insertproduct" element={<Insertproduct/>} />
+            <Route path="/manageproduct/updateproduct/:id" element={<Updateproduct/>} />
           </Routes>
         </div>
       </Router>
