@@ -167,7 +167,7 @@ export default function Managecategory() {
 
     useEffect(() => {
         if (isclickdel) {
-            alert("ต้องการประเภทสินค้านี้ ใช่ หรือ ไม่","","confirm");
+            alert("ต้องการลบประเภทสินค้านี้ ใช่ หรือ ไม่","","confirm");
         }
         else {
             setisalert(false)

@@ -9,7 +9,7 @@ function App() {
   return(
     <div className="h-[100dvh] flex gap-[10px] bg-[#f5f5f5] p-[10px]">
       <Router>
-        <nav className="w-[80px] p-[20px_5px] flex justify-center bg-[#fff]">
+        <nav className="w-[80px] p-[20px_5px] flex justify-center bg-[#fff] rounded-[4px] shrink-0">
           <ul className="w-[100%]">
             <li className="w-[100%] h-[60px]">
               <Link to={"/"} className="hovermenu w-full h-full flex justify-center items-center rounded-[4px] flex-col hover:border-[2px] mt-[20px] hover:border-[#f1662a] hover:bg-[#fdb0766a]">
