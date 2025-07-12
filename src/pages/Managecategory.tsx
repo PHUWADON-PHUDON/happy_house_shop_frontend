@@ -1,5 +1,5 @@
-import { useState,useEffect,useCallback,useRef } from "react";
-import { useNavigate,useSearchParams } from "react-router-dom";
+import { useState,useEffect,useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Alert from "../components/Alert";
 
@@ -24,7 +24,6 @@ export default function Managecategory() {
     const getiditemref = useRef<number>(0);
     const getindexitemsref = useRef<number>(0);
     const navigate = useNavigate();
-    const [searchparam] = useSearchParams();
     const url = import.meta.env.VITE_URLBACKEND;
 
     //!function

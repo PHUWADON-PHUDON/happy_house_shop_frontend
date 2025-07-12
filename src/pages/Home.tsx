@@ -145,10 +145,16 @@ export default function Home() {
     const setQuantity = (index:number,value:number) => {
         if (value > 0) {
             const arrproductinfo = [...allproductinfo];
+            let newtotalref = 0;
             arrproductinfo[index].quantity = value;
             arrproductinfo[index].total = value * arrproductinfo[index].price;
             
-            setallproductinfo((prev) => [...arrproductinfo]);
+            arrproductinfo.forEach(e => {
+                newtotalref += e.total;
+            });
+            totalref.current =newtotalref;
+            
+            setallproductinfo(prev => [...arrproductinfo]);
         }
     }
 
@@ -192,12 +198,33 @@ export default function Home() {
             const res = await axios.post(url + "/product/endofsale",{allproductinfo:allproductinfo});
 
             if (res.status === 201) {
+                totalref.current = 0;
+
                 alert("จบการขายสำเร็จ","s","");
+                setallproduct([]);
+                setallproductinfo([]);
+                setisconfirmalert("cancel");
             }
         }
         catch(err) {
             console.log(err);
         }
+    }
+
+    //!
+
+    //!delete product
+
+    const deleteProduct = (index:number) => {
+        const arrallproductinfo = [...allproductinfo];
+        const arrallproduct = [...allproduct];
+        const newarrallproductinfo = arrallproductinfo.filter((_,i) => i !== index);
+        const newarrallproduct = arrallproduct.filter((_,i) => i !== index);
+
+        totalref.current -= arrallproductinfo[index].total;
+
+        setallproductinfo(prev => [...newarrallproductinfo]);
+        setallproduct(prev => [...newarrallproduct]);
     }
 
     //!
@@ -233,7 +260,7 @@ export default function Home() {
                                 </div>
                                 <div className="flex items-center gap-[15px]">
                                     <p>{e.total} ฿</p>
-                                    <i className="fa-solid fa-trash-can text-[12px] cursor-pointer"></i>
+                                    <i onClick={() => deleteProduct(i)} className="fa-solid fa-trash-can text-[12px] cursor-pointer"></i>
                                 </div>
                             </div>
                             <div className={`${clickmoreoption && indexmoreoption.current === i ? "showmoreoption":""} duration-[0.2s] pl-[20px] h-[0] overflow-hidden`}>

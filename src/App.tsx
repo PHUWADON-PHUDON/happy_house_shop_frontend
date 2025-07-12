@@ -4,6 +4,7 @@ import Manageproduct from './pages/Manageproduct';
 import Managecategory from './pages/Managecategory';
 import Insertproduct from './pages/Insertproduct';
 import Updateproduct from './pages/Updateproduct';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return(
@@ -20,6 +21,10 @@ function App() {
                 <i className="fa-solid fa-pen-to-square text-[20px] text-[#aeaeae]"></i>
                 <p className="text-[12px] text-[#aeaeae]">จัดการสินค้า</p>
               </Link>
+              <Link to={"/dashboard"} className="hovermenu w-full h-full flex justify-center items-center rounded-[4px] flex-col hover:border-[2px] mt-[20px] hover:border-[#f1662a] hover:bg-[#fdb0766a]">
+                <i className="fa-solid fa-chart-line text-[20px] text-[#aeaeae]"></i>
+                <p className="text-[12px] text-[#aeaeae]">ภาพรวม</p>
+              </Link>
             </li>
           </ul>
         </nav>
@@ -30,6 +35,7 @@ function App() {
             <Route path="/manageproduct/managecategory" element={<Managecategory/>} />
             <Route path="/manageproduct/insertproduct" element={<Insertproduct/>} />
             <Route path="/manageproduct/updateproduct/:id" element={<Updateproduct/>} />
+            <Route path="/dashboard" element={<Dashboard/>} />
           </Routes>
         </div>
       </Router>
