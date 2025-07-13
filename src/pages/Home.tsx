@@ -1,7 +1,9 @@
-import { useState,useEffect, useRef } from "react";
+import { useState,useEffect,useRef } from "react";
+import { useReactToPrint } from "react-to-print";
 import noimg from "../assets/noimage.jpg";
 import axios from "axios";
 import Alert from "../components/Alert";
+import Endofsale from "../components/Endofsale";
 
 interface CategoryType {
     id:number;
@@ -36,11 +38,14 @@ export default function Home() {
     const [quantity,setquantity] = useState<number>(0);
     const [isalert,setisalert] = useState<boolean>(false);
     const [isconfirmalert,setisconfirmalert] = useState<string>("cancel"); //status cancel,on,ok
+    const [ispopendofsale,setispopendofsale] = useState<boolean>(false);
     const indexmoreoption = useRef<number>(0);
     const totalref = useRef<number>(0);
     const textalertref = useRef<string>("");
     const labelalertref = useRef<string>("");
     const typealertref = useRef<string>("");
+    const receiptref = useRef<HTMLDivElement>(null);
+    const printreceipt = useReactToPrint({contentRef:receiptref});
     const url = import.meta.env.VITE_URLBACKEND;
 
     //!function
@@ -191,28 +196,6 @@ export default function Home() {
 
     //!
 
-    //!end of sale
-
-    const endOfSale = async () => {
-        try{
-            const res = await axios.post(url + "/product/endofsale",{allproductinfo:allproductinfo});
-
-            if (res.status === 201) {
-                totalref.current = 0;
-
-                alert("จบการขายสำเร็จ","s","");
-                setallproduct([]);
-                setallproductinfo([]);
-                setisconfirmalert("cancel");
-            }
-        }
-        catch(err) {
-            console.log(err);
-        }
-    }
-
-    //!
-
     //!delete product
 
     const deleteProduct = (index:number) => {
@@ -225,6 +208,44 @@ export default function Home() {
 
         setallproductinfo(prev => [...newarrallproductinfo]);
         setallproduct(prev => [...newarrallproduct]);
+        console.log(arrallproductinfo[index]);
+    }
+
+    //!
+
+    //!click btn end of sale
+
+    const isPopEndOfSale = async () => {
+        if (allproduct.length !== 0) {
+            setispopendofsale(!ispopendofsale);
+        }
+    }
+
+    //!
+
+    //!end of sale
+
+    const endOfsale = async () => {
+        try{
+            if (allproduct.length !== 0) {
+                printreceipt();
+
+                const res = await axios.post(url + "/product/endofsale",{allproductinfo:allproductinfo});
+
+                if (res.status === 201) {
+                    totalref.current = 0;
+
+                    alert("จบการขายสำเร็จ","s","");
+                    setallproduct([]);
+                    setallproductinfo([]);
+                    setisconfirmalert("cancel");
+                    setispopendofsale(false);
+                }
+            }
+        }
+        catch(err) {
+            console.log(err);
+        }
     }
 
     //!
@@ -254,18 +275,18 @@ export default function Home() {
                         <div key={i} className="p-[10px] bg-[#f5f5f5] rounded-[4px] mb-[10px]">
                             <div className="flex justify-between">
                                 <div className="flex items-center gap-[10px]">
-                                    <i onClick={() => moreOption(i)} className={`${clickmoreoption && indexmoreoption.current === i ? "rotate-[90deg]":""} fa-solid fa-angle-right text-[15px] duration-[0.2s] cursor-pointer`}></i>
+                                    <i onClick={() => ispopendofsale ? "":moreOption(i)} className={`${clickmoreoption && indexmoreoption.current === i ? "rotate-[90deg]":""} fa-solid fa-angle-right text-[15px] duration-[0.2s] cursor-pointer`}></i>
                                     <p>{e.quantity}</p>
                                     <p>{e.name}</p>
                                 </div>
                                 <div className="flex items-center gap-[15px]">
                                     <p>{e.total} ฿</p>
-                                    <i onClick={() => deleteProduct(i)} className="fa-solid fa-trash-can text-[12px] cursor-pointer"></i>
+                                    <i onClick={() => ispopendofsale ? "":deleteProduct(i)} className="fa-solid fa-trash-can text-[12px] cursor-pointer"></i>
                                 </div>
                             </div>
                             <div className={`${clickmoreoption && indexmoreoption.current === i ? "showmoreoption":""} duration-[0.2s] pl-[20px] h-[0] overflow-hidden`}>
                                 <p className="text-[15px]">จำนวน</p>
-                                <input onChange={(e) => setQuantity(i,Number(e.target.value))} value={e.quantity} type="number" min={1} className="w-full bg-white rounded-[4px] pl-[10px] focus:outline-none"/>
+                                <input onChange={(e) => ispopendofsale ? "":setQuantity(i,Number(e.target.value))} value={e.quantity} type="number" min={1} className="w-full bg-white rounded-[4px] pl-[10px] focus:outline-none"/>
                             </div>
                         </div>
                     ))}
@@ -276,12 +297,19 @@ export default function Home() {
                         <p>{totalref.current} ฿</p>
                     </div>
                     <div className="flex gap-[10px] mt-[20px]">
-                        <div onClick={() => clearOrder()} className="w-1/2 p-[10px_0] rounded-[4px] text-white font-bold cursor-pointer text-center bg-[#f1662a]">ละทิ้ง</div>
-                        <div onClick={() => endOfSale()} className="w-1/2 p-[10px_0] rounded-[4px] text-white font-bold cursor-pointer text-center bg-[#31b84b]">จบการขาย</div>
+                        <div onClick={() => ispopendofsale ? "":clearOrder()} className="w-1/2 p-[10px_0] rounded-[4px] text-white font-bold cursor-pointer text-center bg-[#f1662a]">ละทิ้ง</div>
+                        <div onClick={() => ispopendofsale ? "":isPopEndOfSale()} className="w-1/2 p-[10px_0] rounded-[4px] text-white font-bold cursor-pointer text-center bg-[#31b84b]">จบการขาย</div>
                     </div>
                 </div>
             </div>
         </div>
+        {ispopendofsale ? 
+            <div>
+                <Endofsale isPopEndOfSale={isPopEndOfSale} allproductinfo={allproductinfo} total={totalref.current} endOfsale={endOfsale} receiptref={receiptref}/>
+            </div>
+            :
+            ""
+        }
         </>
     );
 }
